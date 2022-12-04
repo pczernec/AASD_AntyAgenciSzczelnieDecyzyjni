@@ -38,6 +38,6 @@ Counter: 3
 ^CStopping...
 ```
 
-__WARNING__: If you have python **3.10** or newer you need to downgrade to al least **3.9** at SPADE has some poblems with itself.
+__WARNING__: If you have python **>= 3.10** you need to downgrade to **<= 3.9** as SPADE has some problems with itself.
 
 
