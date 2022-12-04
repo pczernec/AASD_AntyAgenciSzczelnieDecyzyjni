@@ -1,11 +1,12 @@
 version: '3'
+
 services:
-  xmpp:
-    build: .
-    ports:
-      - "5222:5222"
-      - "5269:5269"
-    volumes:
-      - ./prosody:/config:ro
-      - ./prosody_db:/data
+  xmpp_server:
+    extends:
+      file: './packages/xmpp_server/docker-compose.yml'
+      service: xmpp
+  agents:
+    extends:
+      file: './packages/agents/docker-compose.yml'
+      service: agents
 

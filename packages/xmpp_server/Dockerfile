@@ -27,8 +27,8 @@ RUN apt-get update \
 
 EXPOSE 80 443 5222 5269 5347 5280 5281
 
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
-USER ubuntu
+RUN useradd -ms /bin/bash ubuntu
 WORKDIR /home/ubuntu
+COPY ./run.sh .
 
-CMD ["prosody", "-F", "--config", "/config/prosody.cfg.lua"]
+CMD ["./run.sh"]

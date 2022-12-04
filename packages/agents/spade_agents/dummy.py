@@ -1,4 +1,3 @@
-import time
 import asyncio
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
@@ -19,15 +18,3 @@ class DummyAgent(Agent):
         b = self.MyBehav()
         self.add_behaviour(b)
 
-if __name__ == "__main__":
-    dummy = DummyAgent("test@localhost", "test")
-    future = dummy.start()
-    future.result()
-
-    print("Wait until user interrupts with ctrl+C")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Stopping...")
-    dummy.stop()
