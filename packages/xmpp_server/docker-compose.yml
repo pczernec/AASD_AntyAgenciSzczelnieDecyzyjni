@@ -1,0 +1,11 @@
+version: '3'
+services:
+  xmpp_server:
+    build: .
+    command: --config /config/prosody.cfg.lua
+    ports:
+      - "5222:5222"
+      - "5269:5269"
+    volumes:
+      - ./prosody:/config:ro
+      - ./prosody_db:/data

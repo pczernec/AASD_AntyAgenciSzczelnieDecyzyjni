@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  xmpp_server:
+    extends:
+      file: './packages/xmpp_server/docker-compose.yml'
+      service: xmpp_server
+  agents:
+    extends:
+      file: './packages/agents/docker-compose.yml'
+      service: agents
+
