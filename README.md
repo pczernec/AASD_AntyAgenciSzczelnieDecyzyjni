@@ -9,9 +9,11 @@ https://forms.office.com/r/mXeXGpzSfz > maxlength="4000"
 ## Starting XMPP server
 
 * Run `docker-compose up --build -d`
-* If you start this first time, run `docker-compose exec xmpp /config/initdb.sh` to register some users
+* If you start this first time, run `docker-compose exec -u prosody xmpp_server /config/initdb.sh` to register some users
 
 ## Running example
+
+__WARNING__: If you have python **>= 3.10** you need to downgrade to **<= 3.9**, because `TypeError: As of 3.10, the *loop* parameter was removed from Lock() since it is no longer necessary`.
 
 ### Install __SPADE__
 ```sh
@@ -37,7 +39,4 @@ Counter: 2
 Counter: 3
 ^CStopping...
 ```
-
-__WARNING__: If you have python **>= 3.10** you need to downgrade to **<= 3.9** as SPADE has some problems with itself.
-
 
