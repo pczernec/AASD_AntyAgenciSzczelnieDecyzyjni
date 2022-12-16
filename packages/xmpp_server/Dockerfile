@@ -30,8 +30,8 @@ EXPOSE 80 443 5222 5269 5347 5280 5281
 
 # https://github.com/docker-library/redis/blob/master/Dockerfile.template
 
-RUN mkdir /data && chown prosody:prosody /data
-VOLUME /data
+# RUN mkdir /data && chown prosody:prosody /data
+# VOLUME /data
 
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]

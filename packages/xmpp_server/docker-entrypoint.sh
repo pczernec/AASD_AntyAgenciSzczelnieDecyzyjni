@@ -2,9 +2,9 @@
 
 DATABASE=/data/prosody.sqlite
 
-touch $DATABASE
-chown prosody:prosody $DATABASE
-chmod +r $DATABASE
+# touch $DATABASE
+chown prosody:prosody /data
+# chmod +r $DATABASE
 
 CMD="$@"
 
