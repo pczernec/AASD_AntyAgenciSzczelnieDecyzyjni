@@ -155,6 +155,7 @@ storage = "sql" -- Default is "internal"
 
 -- For the "sql" backend, you can uncomment *one* of the below to configure:
 sql = { driver = "SQLite3", database = "/data/prosody.sqlite" } -- Default. 'database' is the filename.
+sql_manage_tables = true
 --sql = { driver = "MySQL", database = "prosody", username = "prosody", password = "secret", host = "localhost" }
 --sql = { driver = "PostgreSQL", database = "prosody", username = "prosody", password = "secret", host = "localhost" }
 
@@ -219,6 +220,10 @@ VirtualHost "xmpp_server"
 --VirtualHost "example.com"
 
 ------ Components ------
+
+Component "broadcast@xmpp_server" "broadcast"
+    broadcast_senders = { "agent0@xmpp_server", "agent1@xmpp_server", "agent2@xmpp_server", "agent3@xmpp_server", "agent4@xmpp_server", "agent5@xmpp_server", "agent6@xmpp_server", "agent6@xmpp_server", "agent7@xmpp_server", "agent8@xmpp_server", "agent9@xmpp_server", "agent10@xmpp_server", "agent11@xmpp_server", "agent12@xmpp_server" }
+
 -- You can specify components to add hosts that provide special services,
 -- like multi-user conferences, and transports.
 -- For more information on components, see https://prosody.im/doc/components

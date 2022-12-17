@@ -32,8 +32,8 @@ COPY prosody_modules /usr/lib/prosody/modules
 
 # https://github.com/docker-library/redis/blob/master/Dockerfile.template
 
-RUN mkdir /data && chown prosody:prosody /data
-VOLUME /data
+# RUN mkdir /data && chown prosody:prosody /data
+# VOLUME /data
 
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
