@@ -7,6 +7,7 @@ import random
 import os
 import json
 import time
+import socket
 
 from spade.message import Message
 
@@ -38,7 +39,7 @@ class SmartWatchAgent(Agent):
             state = await self.myuser_state.get()
             print(f"[[StateBroadcaster]]: Got state from current user: {state}")
 
-            msg = Message(to=f"broadcast@{os.environ['XMPP']}")
+            msg = Message(to=f"broadcast@{os.environ['XMPP']}", metadata={'agent_id': socket.gethostname()})
             msg.set_metadata('performative', 'inform')
             msg.body = json.dumps(asdict(state))
             await self.send(msg)
@@ -56,8 +57,8 @@ class SmartWatchAgent(Agent):
                 msg = await self.receive(timeout=100)
 
             state = UserState(**json.loads(msg.body))
-            if not str(msg.sender).startswith(f"{self.agent.name}@"):
-                print(f"[[StateReceiver]]: Received state: {state} from {msg.sender}")
+            if msg.metadata['agent_id'] != socket.gethostname():
+                print(f"[[StateReceiver]]: Received state: {state} from {msg.metadata['agent_id']}")
                 self.user_states.append(state)
 
                 t = time.time()

@@ -16,5 +16,4 @@ services:
       AGENT_NAME: 'agent'
       AGENT_PASSWORD: 'agent'
       XMPP: 'xmpp_server'
-    deploy:
-      replicas: 1
+    scale: 3
