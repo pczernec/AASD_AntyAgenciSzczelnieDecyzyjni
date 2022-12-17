@@ -1,21 +1,22 @@
-from asyncio.futures import Future
+import json
+import os
+import random
+import socket
+import time
 from asyncio.queues import Queue
+from dataclasses import asdict, dataclass
+
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
-from dataclasses import asdict, dataclass
-import random
-import os
-import json
-import time
-import socket
-
 from spade.message import Message
+
 
 @dataclass
 class UserState:
     hp: float
     mana: float
     at: float
+
 
 class SmartWatchAgent(Agent):
     class StateCollector(PeriodicBehaviour):
@@ -24,7 +25,7 @@ class SmartWatchAgent(Agent):
             print(f"[[StateCollector]]: Fetching current user state: {state}")
 
             if self.last_state != state:
-                await self.agent.state_broadcaster.myuser_state.put(state)
+                await self.agent.state_broadcaster.my_user_state.put(state)
                 self.last_state = state
 
         async def on_start(self) -> None:
@@ -33,10 +34,10 @@ class SmartWatchAgent(Agent):
     class StateBroadcaster(CyclicBehaviour):
         def __init__(self):
             super().__init__()
-            self.myuser_state = Queue()
+            self.my_user_state = Queue()
 
         async def run(self) -> None:
-            state = await self.myuser_state.get()
+            state = await self.my_user_state.get()
             print(f"[[StateBroadcaster]]: Got state from current user: {state}")
 
             msg = Message(to=f"broadcast@{os.environ['XMPP']}", metadata={'agent_id': socket.gethostname()})
@@ -76,7 +77,6 @@ class SmartWatchAgent(Agent):
         async def run(self) -> None:
             el = await self.state_queue.get()
             print(f"[[DangerNotifier]]: Received for calculation: {el}")
-
 
     async def setup(self) -> None:
         self.state_collector = self.StateCollector(period=1)

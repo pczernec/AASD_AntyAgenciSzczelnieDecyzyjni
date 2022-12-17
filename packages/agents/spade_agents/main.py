@@ -1,7 +1,10 @@
-from spade_agents import SmartWatchAgent
-from spade import quit_spade
 import os
 import time
+
+from spade import quit_spade  # noqa
+
+from spade_agents import SmartWatchAgent
+
 
 def main():
     name = os.environ['AGENT_NAME']

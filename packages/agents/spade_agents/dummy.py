@@ -1,6 +1,8 @@
 import asyncio
+
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
+
 
 class DummyAgent(Agent):
     class MyBehav(CyclicBehaviour):
@@ -17,4 +19,3 @@ class DummyAgent(Agent):
         print("Agent starting . . .")
         b = self.MyBehav()
         self.add_behaviour(b)
-
