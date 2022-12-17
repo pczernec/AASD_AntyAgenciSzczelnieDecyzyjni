@@ -17,13 +17,13 @@ end
 function send_message(event)
 	local stanza = event.stanza;
 	local from = stanza.attr.from;
-    if from_address then
-        stanza = st.clone(stanza);
+    if from_address and from ~= from_address then
+        -- stanza = st.clone(stanza);
         stanza.attr.from = from_address;
+		local c = send_to_online(stanza);
+		module:log("debug", "Broadcast stanza from %s to %d online users", from, c);
+		return true;
     end
-    local c = send_to_online(stanza);
-    module:log("debug", "Broadcast stanza from %s to %d online users", from, c);
-    return true;
 end
 
 module:hook("message/bare", send_message);

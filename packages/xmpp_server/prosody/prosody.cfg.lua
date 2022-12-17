@@ -221,6 +221,7 @@ VirtualHost "xmpp_server"
 ------ Components ------
 
 Component "broadcast@xmpp_server" "broadcast"
+	broadcast_from = "broadcast@xmpp_server"
 
 -- You can specify components to add hosts that provide special services,
 -- like multi-user conferences, and transports.
