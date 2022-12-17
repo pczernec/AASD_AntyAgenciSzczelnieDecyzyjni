@@ -84,7 +84,12 @@ modules_enabled = {
 		--"tombstones"; -- Prevent registration of deleted accounts
 		--"watchregistrations"; -- Alert admins of registrations
 		--"welcome"; -- Welcome users who register accounts
+
+	-- Custom
+		"broadcast";
 }
+
+allow_registration = true -- Allow users to register new accounts
 
 -- These modules are auto-loaded, but should you want
 -- to disable them then uncomment them here:
@@ -234,6 +239,9 @@ VirtualHost "xmpp_server"
 --
 --Component "gateway.example.com"
 --	component_secret = "password"
+
+
+Component "broadcast@xmpp_server" "broadcast"
 
 
 ---------- End of the Prosody Configuration file ----------
