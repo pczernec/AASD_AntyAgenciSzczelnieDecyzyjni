@@ -10,12 +10,6 @@ add_user(){
     return 1
 }
 
-# Fix DB permissions
-DATABASE=/data/prosody.sqlite
-
-# chown prosody:prosody $DATABASE
-chmod +r $DATABASE
-
 # Add basic users
 USERS=("admin" "test")
 PASSWORDS=("admin" "test")
@@ -27,10 +21,15 @@ for i in ${!USERS[@]}; do
     add_user $USER $PASSWORD && echo "Added $USER:$PASSWORD"
 done
 
+# Fix DB permissions
+chmod +r /data/prosody.sqlite
+
 # Add agent users, since allow_registration=true in Prosody doesn't work :/
 for i in {0..127}; do
     USER="agent_$i"
     PASSWORD="agent_$i"
 
-    add_user $USER $PASSWORD && echo "Added $USER:$PASSWORD"
+    add_user $USER $PASSWORD
 done
+
+echo "Created agent accounts"
