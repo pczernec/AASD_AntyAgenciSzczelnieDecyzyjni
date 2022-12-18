@@ -16,4 +16,8 @@ services:
       AGENT_NAME: 'agent'
       AGENT_PASSWORD: 'agent'
       XMPP: 'xmpp_server'
+      NOTIFY_ADDR: '0.0.0.0'
+      NOTIFY_PORT: 8080
     scale: 3
+    ports:
+      - '5000-5002:8080'
