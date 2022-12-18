@@ -6,10 +6,9 @@ Diagrams: https://demo.bpmn.io/
 
 https://forms.office.com/r/mXeXGpzSfz > maxlength="4000"
 
-## Starting XMPP server
+## Starting XMPP server and agents
 
-* Run `docker-compose up --build -d`
-* If you start this first time, run `docker-compose exec -u prosody xmpp_server /config/initdb.sh` to register some users
+Run `docker-compose up --force-recreate --build --remove-orphans`
 
 ## Running example
 
