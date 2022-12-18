@@ -1,16 +1,21 @@
+import os
 import time
-from spade_agents import DummyAgent
+
+from spade import quit_spade  # noqa
+
+from spade_agents import SmartWatchAgent
+
 
 def main():
-    dummy = DummyAgent("test@xmpp_server", "test")
-    future = dummy.start()
-    future.result()
+    name = os.environ['AGENT_NAME']
+    password = os.environ['AGENT_PASSWORD']
+    xmpp = os.environ['XMPP']
 
-    print("Wait until user interrupts with ctrl+C")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Stopping...")
-    dummy.stop()
+    agent = SmartWatchAgent(f"{name}@{xmpp}", password)
+    agent.start().result()
 
+    while agent.is_alive():
+        time.sleep(1)
+
+    agent.stop()
+    quit_spade()

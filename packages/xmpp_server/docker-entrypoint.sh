@@ -1,10 +1,8 @@
 #!/bin/bash
 
-DATABASE=/data/prosody.sqlite
+chown prosody:prosody /data
 
-touch $DATABASE
-chown prosody:prosody $DATABASE
-chmod +r $DATABASE
+/config/init.sh &
 
 CMD="$@"
 

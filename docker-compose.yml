@@ -5,8 +5,15 @@ services:
     extends:
       file: './packages/xmpp_server/docker-compose.yml'
       service: xmpp_server
-  agents:
+
+  agent:
+    depends_on:
+      - xmpp_server
     extends:
       file: './packages/agents/docker-compose.yml'
       service: agents
-
+    environment:
+      AGENT_NAME: 'agent'
+      AGENT_PASSWORD: 'agent'
+      XMPP: 'xmpp_server'
+    scale: 3

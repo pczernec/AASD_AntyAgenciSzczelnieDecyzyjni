@@ -84,7 +84,12 @@ modules_enabled = {
 		--"tombstones"; -- Prevent registration of deleted accounts
 		--"watchregistrations"; -- Alert admins of registrations
 		--"welcome"; -- Welcome users who register accounts
+
+	-- Custom
+		"broadcast";
 }
+
+allow_registration = true -- Allow users to register new accounts
 
 -- These modules are auto-loaded, but should you want
 -- to disable them then uncomment them here:
@@ -214,6 +219,10 @@ VirtualHost "xmpp_server"
 --VirtualHost "example.com"
 
 ------ Components ------
+
+Component "broadcast@xmpp_server" "broadcast"
+	broadcast_from = "broadcast@xmpp_server"
+
 -- You can specify components to add hosts that provide special services,
 -- like multi-user conferences, and transports.
 -- For more information on components, see https://prosody.im/doc/components

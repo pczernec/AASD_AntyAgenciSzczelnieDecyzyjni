@@ -27,10 +27,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 
 EXPOSE 80 443 5222 5269 5347 5280 5281
 
+COPY prosody_modules /usr/lib/prosody/modules
 
-# https://github.com/docker-library/redis/blob/master/Dockerfile.template
-
-RUN mkdir /data && chown prosody:prosody /data
 VOLUME /data
 
 COPY docker-entrypoint.sh /usr/local/bin/
