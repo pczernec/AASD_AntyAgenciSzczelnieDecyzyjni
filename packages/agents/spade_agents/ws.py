@@ -12,7 +12,7 @@ class WSServer:
 
     async def _accept_connection(self, websocket):
         self.connections.append(websocket)
-        print(f"added connection")
+        print("added connection")
 
         if self.last_state is not None:
             await websocket.send(self.last_state)

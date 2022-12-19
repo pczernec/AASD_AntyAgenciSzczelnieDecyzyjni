@@ -8,8 +8,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PySide2.QtCore import Qt, QUrl
 from PySide2.QtWebSockets import QWebSocket
-from PySide2.QtWidgets import (QApplication, QGridLayout, QMainWindow,
-                               QPushButton, QSlider, QWidget)
+from PySide2.QtWidgets import (
+    QApplication,
+    QGridLayout,
+    QMainWindow,
+    QPushButton,
+    QSlider,
+    QWidget,
+)
 
 
 class MplCanvas(FigureCanvasQTAgg):

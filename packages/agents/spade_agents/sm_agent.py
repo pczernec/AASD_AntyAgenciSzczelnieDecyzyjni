@@ -6,7 +6,6 @@ import time
 from asyncio.queues import Queue
 from copy import copy
 from dataclasses import asdict, dataclass
-from typing import Tuple
 
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
