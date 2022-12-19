@@ -1,8 +1,10 @@
+import asyncio
 from asyncio.queues import Queue
 from json import dumps
 from threading import Thread
+
 import websockets
-import asyncio
+
 
 class WSServer:
     def __init__(self) -> None:
