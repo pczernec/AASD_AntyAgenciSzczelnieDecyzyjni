@@ -7,6 +7,7 @@ from asyncio.queues import Queue
 from copy import copy
 from dataclasses import asdict, dataclass
 
+import numpy as np
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
 from spade.message import Message
@@ -43,14 +44,14 @@ class SmartWatchAgent(Agent):
             self.state = UserState(
                 x=random.random(),
                 y=random.random(),
-                hp=random.random(),
+                hp=0.5 + random.random() / 2 * random.choice([-1, 1]),
                 mana=random.random(),
             )
 
         async def run(self) -> None:
-            self.state.x += random.random() * SIM_STEP - SIM_STEP / 2
-            self.state.y += random.random() * SIM_STEP - SIM_STEP / 2
-            self.state.hp += random.random() * SIM_STEP - SIM_STEP / 2
+            self.state.x += self.state.x * SIM_STEP - SIM_STEP / 2
+            self.state.y += self.state.y * SIM_STEP - SIM_STEP / 2
+            self.state.hp += self.state.hp * SIM_STEP - SIM_STEP / 2
 
             print(f"[[StateCollector]]: Fetching current user state: {self.state}")
 
@@ -105,28 +106,62 @@ class SmartWatchAgent(Agent):
                     self.last_time = t
 
     class DangerNotifier(CyclicBehaviour):
+        SMALL_DANGER = 0.2
+        MEDIUM_DANGER = 0.5
+        RUN_TYPE_OF_DANGER = 0.8
+
+        DANGER_THRESHOLD = 0.8
+        ZONE_AREA_RADIUS = 0.3
+
         def __init__(self):
             super().__init__()
             self.state_queue = Queue()
             self.others_score = 0.0
-            self.scores_list = []
-            self.myscore: UserState = UserState.default()
+            self.states_list = []
+            self.my_state: UserState = UserState.default()
+            self.my_zone_danger_score = self.SMALL_DANGER
             self.server = WSServer()
 
         async def run(self) -> None:
             el = await self.state_queue.get()
 
             if isinstance(el, UserState):
-                self.myscore = el
+                self.my_state = el
             else:
-                self.scores_list = el
+                self.states_list = el
 
             print(f"[[DangerNotifier]]: Received for calculation: {el}")
 
-            states = [self.myscore] + self.scores_list
+            states = [self.my_state] + self.states_list
+
+            if self.states_list:
+                # filter based on distance
+                my_location = np.array([self.my_state.x, self.my_state.y])
+                others_locations = np.vstack([
+                    [s.x for s in self.states_list],
+                    [s.y for s in self.states_list],
+                ]).T
+
+                results = (np.linalg.norm(others_locations[:,:2] - my_location, axis=1) <= self.ZONE_AREA_RADIUS)
+                agents_in_zone = [state for state, in_zone in zip(self.states_list, results) if in_zone]
+
+                agents_in_danger = sum([s.hp > self.DANGER_THRESHOLD for s in agents_in_zone])
+
+                if agents_in_danger <= 1:
+                    self.my_zone_danger_score = self.SMALL_DANGER
+                elif agents_in_danger <= 3:
+                    self.my_zone_danger_score = self.MEDIUM_DANGER
+                else:
+                    self.my_zone_danger_score = self.RUN_TYPE_OF_DANGER
+
             await self.server.send(
                 json.dumps(
-                    {"scores": states, "myscore": self.myscore}, cls=UserStateEncoder
+                    {
+                        "states": states,
+                        "my_score": states[0].hp,
+                        "area_danger": self.my_zone_danger_score,
+                    },
+                    cls=UserStateEncoder,
                 )
             )
 
