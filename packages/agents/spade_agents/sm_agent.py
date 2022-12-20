@@ -11,7 +11,8 @@ import numpy as np
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
 from spade.message import Message
-from spade_agents.ws import WSServer
+
+from .ws import WSServer
 
 
 @dataclass
@@ -37,6 +38,7 @@ class SmartWatchAgent(Agent):
     class StateCollector(PeriodicBehaviour):
         def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
+            self.last_state = UserState.default()
             self.state = UserState(
                 x=random.random(),
                 y=random.random(),
@@ -53,9 +55,6 @@ class SmartWatchAgent(Agent):
             if self.last_state != self.state:
                 await self.agent.state_broadcaster.my_user_state.put(self.state)
                 self.last_state = copy(self.state)
-
-        async def on_start(self) -> None:
-            self.last_state = UserState.default()
 
     class StateBroadcaster(CyclicBehaviour):
         def __init__(self):
@@ -137,7 +136,7 @@ class SmartWatchAgent(Agent):
                     [s.y for s in self.states_list],
                 ]).T
 
-                results = (np.linalg.norm(others_locations[:,:2] - my_location, axis=1) <= self.ZONE_AREA_RADIUS)
+                results = (np.linalg.norm(others_locations[:, :2] - my_location, axis=1) <= self.ZONE_AREA_RADIUS)
                 agents_in_zone = [state for state, in_zone in zip(self.states_list, results) if in_zone]
 
                 agents_in_danger = sum([s.hp > self.DANGER_THRESHOLD for s in agents_in_zone])

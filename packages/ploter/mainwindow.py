@@ -1,12 +1,8 @@
-# This Python file uses the following encoding: utf-8
 import json
 import sys
 
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm, colors
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
+import numpy as np
 from PySide2.QtCore import Qt, QUrl
 from PySide2.QtWebSockets import QWebSocket
 from PySide2.QtWidgets import (
@@ -17,10 +13,13 @@ from PySide2.QtWidgets import (
     QSlider,
     QWidget,
 )
+from matplotlib import cm, colors
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
 
 
 class MplCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
@@ -40,10 +39,10 @@ class MainWindow(QMainWindow):
         self.socket = QWebSocket()
         grid = QGridLayout()
 
-        self.sc = MplCanvas(self, width=5, height=4, dpi=100)
+        self.sc = MplCanvas(width=5, height=4, dpi=100)
         grid.addWidget(self.sc, 0, 0)
 
-        self.sf = MplCanvas(self, width=5, height=4, dpi=100)
+        self.sf = MplCanvas(width=5, height=4, dpi=100)
         grid.addWidget(self.sf, 0, 1)
 
         self.agents_slider = QSlider(Qt.Orientation.Horizontal)
@@ -65,6 +64,10 @@ class MainWindow(QMainWindow):
         widget.setLayout(grid)
         self.setCentralWidget(widget)
 
+        self.current_id = 0
+        self.HP = []
+        self.DG = []
+
         self.connect_to_agent(0)
 
     def _reconnect(self):
@@ -80,7 +83,7 @@ class MainWindow(QMainWindow):
         self.socket.close()
         self.socket.error.connect(self._socket_error)
         self.socket.textMessageReceived.connect(self.on_agent_data_received)
-        self.socket.open(QUrl(f"ws://localhost:{5000+idx}"))
+        self.socket.open(QUrl(f"ws://localhost:{5000 + idx}"))
 
     def _socket_error(self):
         print(self.socket.errorString())
@@ -94,22 +97,22 @@ class MainWindow(QMainWindow):
         my_score = msg["my_score"]
         my_area_danger_level = msg["area_danger"]
 
-        X = []
-        Y = []
-        Z = []
+        x = []
+        y = []
+        z = []
 
         for state, score in zip(states, scores):
-            X.append(state["x"])
-            Y.append(state["y"])
-            Z.append(score)
+            x.append(state["x"])
+            y.append(state["y"])
+            z.append(score)
 
-        X = np.array(X) - (my_state["x"])
-        Y = np.array(Y) - (my_state["y"])
+        x = np.array(x) - (my_state["x"])
+        y = np.array(y) - (my_state["y"])
 
-        self.plot_scores(X, Y, Z, my_area_danger_level)
+        self.plot_scores(x, y, z, my_area_danger_level)
         self.plot_myscore(my_score, my_area_danger_level)
 
-    def plot_scores(self, X, Y, Z, my_area_danger_level):
+    def plot_scores(self, x, y, z, my_area_danger_level):
         self.sc.axes.cla()
 
         circle_col = "g"
@@ -127,8 +130,7 @@ class MainWindow(QMainWindow):
         self.sc.axes.set_ylabel("Y")
         self.sc.axes.set_xlabel("X")
         cmap = cm.get_cmap("winter")
-        self.sc.axes.scatter(X, Y, c=cmap(Z), norm=colors.Normalize(vmin=0.0, vmax=1.0))
-
+        self.sc.axes.scatter(x, y, c=cmap(z), norm=colors.Normalize(vmin=0.0, vmax=1.0))
 
         zone_area = plt.Circle(
             (0, 0),

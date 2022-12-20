@@ -1,8 +1,9 @@
 import os
 import time
 
-from spade import quit_spade
-from spade_agents import SmartWatchAgent
+from spade import quit_spade  # noqa
+
+from .sm_agent import SmartWatchAgent
 
 
 def main():
@@ -13,5 +14,8 @@ def main():
     agent = SmartWatchAgent(f"{name}@{xmpp}", password)
     agent.start().result()
 
-    while True:
+    while agent.is_alive():
         time.sleep(1)
+
+    agent.stop()
+    quit_spade()
