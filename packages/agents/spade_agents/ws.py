@@ -9,9 +9,9 @@ import websockets
 class WSServer:
     def __init__(self) -> None:
         self.connections = []
-        self.queue = Queue()
 
         self.loop = None
+        self.queue = None
         self.thread = None
         self.last_state = None
 
@@ -33,6 +33,8 @@ class WSServer:
         websockets.broadcast(self.connections, el)
 
     async def _listen(self):
+        self.queue = Queue()
+
         async with websockets.serve(self._accept_connection, "0.0.0.0", 8080):
             while True:
                 await self._do_broadcast()
