@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         self.socket.close()
         self.socket.error.connect(self._socket_error)
         self.socket.textMessageReceived.connect(self.on_agent_data_received)
-        self.socket.open(QUrl(f"ws://localhost:{6333+idx}"))
+        self.socket.open(QUrl(f"ws://localhost:{5000+idx}"))
 
     def _socket_error(self):
         print(self.socket.errorString())

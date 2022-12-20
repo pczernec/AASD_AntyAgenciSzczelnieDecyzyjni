@@ -48,5 +48,6 @@ class WSServer:
     async def send(self, el):
         if isinstance(el, dict):
             el = dumps(el)
+
         self.last_state = el
         await self.queue.put(el)

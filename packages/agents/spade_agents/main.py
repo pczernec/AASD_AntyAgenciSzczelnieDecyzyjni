@@ -15,6 +15,3 @@ def main():
 
     while True:
         time.sleep(1)
-
-    agent.stop()
-    quit_spade()
