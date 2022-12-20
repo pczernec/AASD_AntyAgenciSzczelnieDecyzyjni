@@ -3,6 +3,7 @@ import json
 import sys
 
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import cm, colors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -26,6 +27,13 @@ class MplCanvas(FigureCanvasQTAgg):
 
 
 class MainWindow(QMainWindow):
+    # Those constants are shared with the DangerNotifier class.
+    SMALL_DANGER = 0.2
+    MEDIUM_DANGER = 0.5
+    RUN_TYPE_OF_DANGER = 0.8
+
+    ZONE_AREA_RADIUS = 0.3
+
     def __init__(self):
         QMainWindow.__init__(self)
 
@@ -79,47 +87,62 @@ class MainWindow(QMainWindow):
 
     def on_agent_data_received(self, msg):
         msg = json.loads(msg)
-        print(msg)
-        scores = msg["scores"]
-        myscore = msg["myscore"]
+
+        states = msg["states"]
+        scores = [s["hp"] for s in states]
+        my_state = states[0]
+        my_score = msg["my_score"]
+        my_area_danger_level = msg["area_danger"]
 
         X = []
         Y = []
         Z = []
 
-        for score in scores:
-            X.append(score["x"])
-            Y.append(score["y"])
-            Z.append(score["hp"])
+        for state, score in zip(states, scores):
+            X.append(state["x"])
+            Y.append(state["y"])
+            Z.append(score)
 
-        X = np.array(X) - (myscore["x"])
-        Y = np.array(Y) - (myscore["y"])
+        X = np.array(X) - (my_state["x"])
+        Y = np.array(Y) - (my_state["y"])
 
-        self.plot_scores(X, Y, Z)
-        self.plot_myscore(myscore)
+        self.plot_scores(X, Y, Z, my_area_danger_level)
+        self.plot_myscore(my_score, my_area_danger_level)
 
-    def plot_scores(self, X, Y, Z):
-        print(X, Y, Z)
-
+    def plot_scores(self, X, Y, Z, my_area_danger_level):
         self.sc.axes.cla()
+
+        circle_col = "g"
+        if my_area_danger_level == self.MEDIUM_DANGER:
+            circle_col = "b"
+        elif my_area_danger_level == self.RUN_TYPE_OF_DANGER:
+            circle_col = "r"
+            self.sc.axes.set_facecolor('xkcd:salmon')
+
         self.sc.axes.set_xlim(-1, 1)
         self.sc.axes.set_ylim(-1, 1)
         self.sc.axes.set_title(
-            f"Pozycje i stan agnetów, widok agenta {self.current_id}"
+            f"Pozycje i stan agentów, widok agenta {self.current_id}"
         )
         self.sc.axes.set_ylabel("Y")
         self.sc.axes.set_xlabel("X")
-        self.sc.axes.scatter(
-            X, Y, c=cm.hot(Z), norm=colors.Normalize(vmin=0.0, vmax=1.0)
+        cmap = cm.get_cmap("winter")
+        self.sc.axes.scatter(X, Y, c=cmap(Z), norm=colors.Normalize(vmin=0.0, vmax=1.0))
+
+
+        zone_area = plt.Circle(
+            (0, 0),
+            self.ZONE_AREA_RADIUS,
+            color=circle_col,
+            clip_on=True,
+            fill=False,
         )
+        self.sc.axes.add_patch(zone_area)
         self.sc.draw()
 
-    def plot_myscore(self, score):
-        hp = score["hp"]
-        dg = hp - 0.1  # TODO:
-
-        self.HP = self.HP[:50] + [hp]
-        self.DG = self.DG[:50] + [dg]
+    def plot_myscore(self, my_score, my_area_danger_level):
+        self.HP = self.HP[:50] + [my_score]
+        self.DG = self.DG[:50] + [my_area_danger_level]
 
         self.sf.axes.cla()
         self.sf.axes.scatter(
