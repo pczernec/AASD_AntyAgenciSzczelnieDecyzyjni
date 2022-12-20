@@ -19,19 +19,15 @@ class UserState:
     x: float
     y: float
     hp: float
-    mana: float
 
     @staticmethod
     def default():
-        return UserState(0, 0, 0, 0)
+        return UserState(0, 0, 0)
 
 
 class UserStateEncoder(json.JSONEncoder):
     def default(self, z):
-        if isinstance(z, UserState):
-            return asdict(z)
-        else:
-            return super().default(z)
+        return asdict(z) if isinstance(z, UserState) else super().default(z)
 
 
 SIM_STEP = 0.01
@@ -45,7 +41,6 @@ class SmartWatchAgent(Agent):
                 x=random.random(),
                 y=random.random(),
                 hp=0.5 + random.random() / 2 * random.choice([-1, 1]),
-                mana=random.random(),
             )
 
         async def run(self) -> None:
