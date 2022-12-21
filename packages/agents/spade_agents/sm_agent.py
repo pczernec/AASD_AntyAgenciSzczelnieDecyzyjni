@@ -16,6 +16,10 @@ from spade.message import Message
 from .ws import WSServer
 
 
+def clamp(val, min_v, max_v):
+    return min(max(min_v, val), max_v)
+
+
 @dataclass
 class UserState:
     x: float
@@ -46,39 +50,38 @@ class SmartWatchAgent(Agent):
                 x=random.random(),
                 y=random.random(),
                 hp=0.5 + random.random() / 2 * random.choice([-1, 1]),
-                angle=random.random()*math.pi*2 - math.pi,
+                angle=random.random() * math.pi * 2 - math.pi,
                 velocity=random.random(),
             )
 
         async def run(self) -> None:
-
-            radians = random.random()*math.pi*2 - math.pi
-            velocity = 1-min((2 * math.pi) - abs(radians - self.state.angle), abs(radians - self.state.angle)) / math.pi
-            self.state.x += math.sin(radians * math.pi)*velocity * SIM_STEP
-            self.state.y += math.cos(radians * math.pi)*velocity * SIM_STEP
+            radians = random.random() * math.pi * 2 - math.pi
+            velocity = (
+                1
+                - min(
+                    (2 * math.pi) - abs(radians - self.state.angle),
+                    abs(radians - self.state.angle),
+                )
+                / math.pi
+            )
+            self.state.x += math.sin(radians * math.pi) * velocity * SIM_STEP
+            self.state.y += math.cos(radians * math.pi) * velocity * SIM_STEP
             self.state.angle = radians
             self.state.velocity = velocity
-            
-            if self.state.x < 0.0:
-                self.state.x = 0.0
-            if self.state.x > 1.0:
-                self.state.x = 1.0
-            
-            if self.state.y < 0.0:
-                self.state.y = 0.0
-            if self.state.y > 1.0:
-                self.state.y = 1.0
+
+            self.state.x = clamp(self.state.x, 0, 1)
+            self.state.y = clamp(self.state.y, 0, 1)
 
             rand_hp_factor = random.random()
             if rand_hp_factor < 0.1:
                 hp_change_scale = 3.0
             else:
                 hp_change_scale = 1.0
-            self.state.hp += hp_change_scale*(rand_hp_factor-self.state.hp)*SIM_STEP
-            if self.state.hp < 0.0:
-                self.state.hp = 0.0
-            if self.state.hp > 1.0:
-                self.state.hp = 1.0
+            self.state.hp += (
+                hp_change_scale * (rand_hp_factor - self.state.hp) * SIM_STEP
+            )
+
+            self.state.hp = clamp(self.state.hp, 0, 1)
 
             print(f"[[StateCollector]]: Fetching current user state: {self.state}")
 
@@ -162,15 +165,26 @@ class SmartWatchAgent(Agent):
             if self.states_list:
                 # filter based on distance
                 my_location = np.array([self.my_state.x, self.my_state.y])
-                others_locations = np.vstack([
-                    [s.x for s in self.states_list],
-                    [s.y for s in self.states_list],
-                ]).T
+                others_locations = np.vstack(
+                    [
+                        [s.x for s in self.states_list],
+                        [s.y for s in self.states_list],
+                    ]
+                ).T
 
-                results = (np.linalg.norm(others_locations[:, :2] - my_location, axis=1) <= self.ZONE_AREA_RADIUS)
-                agents_in_zone = [state for state, in_zone in zip(self.states_list, results) if in_zone]
+                results = (
+                    np.linalg.norm(others_locations[:, :2] - my_location, axis=1)
+                    <= self.ZONE_AREA_RADIUS
+                )
+                agents_in_zone = [
+                    state
+                    for state, in_zone in zip(self.states_list, results)
+                    if in_zone
+                ]
 
-                agents_in_danger = sum([s.hp < self.DANGER_THRESHOLD for s in agents_in_zone])
+                agents_in_danger = sum(
+                    [s.hp < self.DANGER_THRESHOLD for s in agents_in_zone]
+                )
 
                 if agents_in_danger <= 1:
                     self.my_zone_danger_score = self.SMALL_DANGER
