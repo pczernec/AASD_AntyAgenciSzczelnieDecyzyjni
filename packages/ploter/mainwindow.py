@@ -2,6 +2,7 @@ import json
 import sys
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 import numpy as np
 from PySide2.QtCore import Qt, QUrl
 from PySide2.QtWebSockets import QWebSocket
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
     # Those constants are shared with the DangerNotifier class.
     SMALL_DANGER = 0.2
     MEDIUM_DANGER = 0.5
-    RUN_TYPE_OF_DANGER = 0.8
+    SERIOUS_DANGER = 0.8
 
     ZONE_AREA_RADIUS = 0.3
 
@@ -42,6 +43,8 @@ class MainWindow(QMainWindow):
         self.socket.textMessageReceived.connect(self.on_agent_data_received)
 
         grid = QGridLayout()
+        grid.setColumnStretch(0, 1)
+        grid.setColumnStretch(1, 1)
 
         self.sc = MplCanvas(width=5, height=4, dpi=100)
         grid.addWidget(self.sc, 0, 0)
@@ -91,12 +94,9 @@ class MainWindow(QMainWindow):
         err = self.socket.errorString()
         print(err)
 
-        self.sc.axes.cla()
+        self.clear_plots()
         self.sc.axes.set_title(f"Agent {self.current_id}: {err}")
-        self.sc.draw()
-
-        self.sf.axes.cla()
-        self.sf.draw()
+        self.draw_plots()
 
     def on_agent_data_received(self, msg):
         msg = json.loads(msg)
@@ -119,28 +119,42 @@ class MainWindow(QMainWindow):
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
+        self.clear_plots()
         self.plot_scores(x, y, z, my_area_danger_level)
         self.plot_myscore(my_score, my_area_danger_level)
+        self.draw_plots()
+
+    def clear_plots(self):
+        locator = plticker.MultipleLocator(base=1)
+
+        self.sc.axes.cla()
+        self.sc.axes.set_xlim(-1, 1)
+        self.sc.axes.set_ylim(-1, 1)
+        self.sc.axes.xaxis.set_major_locator(locator)
+        self.sc.axes.yaxis.set_major_locator(locator)
+        self.sc.axes.set_xlabel("X")
+        self.sc.axes.set_ylabel("Y")
+        self.sc.axes.set_facecolor("xkcd:white")
+        self.sc.axes.set_aspect("equal", adjustable="box")
+
+        self.sf.axes.cla()
+        self.sf.axes.set_ylim(0, 1)
+
+    def draw_plots(self):
+        self.sc.draw()
+        self.sf.draw()
 
     def plot_scores(self, x, y, z, my_area_danger_level):
-        self.sc.axes.cla()
-
         circle_col = "g"
         if my_area_danger_level == self.MEDIUM_DANGER:
             circle_col = "b"
-        if my_area_danger_level == self.RUN_TYPE_OF_DANGER:
+        if my_area_danger_level == self.SERIOUS_DANGER:
             circle_col = "r"
             self.sc.axes.set_facecolor("xkcd:salmon")
-        else:
-            self.sc.axes.set_facecolor("xkcd:white")
 
-        self.sc.axes.set_xlim(-1, 1)
-        self.sc.axes.set_ylim(-1, 1)
         self.sc.axes.set_title(
             f"Pozycje i stan agentów, widok agenta {self.current_id}"
         )
-        self.sc.axes.set_ylabel("Y")
-        self.sc.axes.set_xlabel("X")
 
         cmap = cm.get_cmap("winter")
         norm = plt.Normalize(vmin=0.0, vmax=1.0)
@@ -154,13 +168,11 @@ class MainWindow(QMainWindow):
             fill=False,
         )
         self.sc.axes.add_patch(zone_area)
-        self.sc.draw()
 
     def plot_myscore(self, my_score, my_area_danger_level):
         self.HP = self.HP[:50] + [my_score]
         self.DG = self.DG[:50] + [my_area_danger_level]
 
-        self.sf.axes.cla()
         norm = plt.Normalize(vmin=0.0, vmax=1.0)
         cmapGreens = cm.get_cmap("Greens")
         cmap = ListedColormap(cmapGreens(np.linspace(0.4, 1.0, 256)))
@@ -170,19 +182,19 @@ class MainWindow(QMainWindow):
             c=cmap(norm(self.HP)),
             label="Stan agenta",
         )
+
         norm = colors.Normalize(vmin=0, vmax=1.0)
         cmapHot = cm.get_cmap("hot")
-        cmap = ListedColormap(cmapHot(np.linspace(0.1, 0.6, 256)))
+        cmap = ListedColormap(cmapHot(np.linspace(0.1, 0.5, 256)))
         self.sf.axes.scatter(
             range(0, len(self.DG)),
             self.DG,
             c=cmap(norm(self.DG)),
             label="Poziom zagrożenia",
         )
+
         self.sf.axes.set_title(f"Stan agenta {self.current_id}")
-        self.sf.axes.set_ylim(0, 1)
         self.sf.axes.legend()
-        self.sf.draw()
 
     def on_agent_change(self):
         idx = self.agents_slider.value()

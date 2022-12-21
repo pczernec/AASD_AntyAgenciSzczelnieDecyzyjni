@@ -73,10 +73,9 @@ class SmartWatchAgent(Agent):
             self.state.y = clamp(self.state.y, 0, 1)
 
             rand_hp_factor = random.random()
-            if rand_hp_factor < 0.1:
-                hp_change_scale = 3.0
-            else:
-                hp_change_scale = 1.0
+
+            hp_change_scale = 3.0 if rand_hp_factor < 0.1 else 1.0
+
             self.state.hp += (
                 hp_change_scale * (rand_hp_factor - self.state.hp) * SIM_STEP
             )
@@ -135,7 +134,7 @@ class SmartWatchAgent(Agent):
     class DangerNotifier(CyclicBehaviour):
         SMALL_DANGER = 0.2
         MEDIUM_DANGER = 0.5
-        RUN_TYPE_OF_DANGER = 0.8
+        SERIOUS_DANGER = 0.8
 
         DANGER_THRESHOLD = 0.4
         ZONE_AREA_RADIUS = 0.3
@@ -191,7 +190,7 @@ class SmartWatchAgent(Agent):
                 elif agents_in_danger <= 3:
                     self.my_zone_danger_score = self.MEDIUM_DANGER
                 else:
-                    self.my_zone_danger_score = self.RUN_TYPE_OF_DANGER
+                    self.my_zone_danger_score = self.SERIOUS_DANGER
 
             await self.server.send(
                 json.dumps(
