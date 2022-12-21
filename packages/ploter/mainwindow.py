@@ -16,7 +16,7 @@ from PySide2.QtWidgets import (
 from matplotlib import cm, colors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, width=5, height=4, dpi=100):
@@ -118,9 +118,11 @@ class MainWindow(QMainWindow):
         circle_col = "g"
         if my_area_danger_level == self.MEDIUM_DANGER:
             circle_col = "b"
-        elif my_area_danger_level == self.RUN_TYPE_OF_DANGER:
+        if my_area_danger_level == self.RUN_TYPE_OF_DANGER:
             circle_col = "r"
             self.sc.axes.set_facecolor('xkcd:salmon')
+        else:
+            self.sc.axes.set_facecolor('xkcd:white')
 
         self.sc.axes.set_xlim(-1, 1)
         self.sc.axes.set_ylim(-1, 1)
@@ -129,8 +131,10 @@ class MainWindow(QMainWindow):
         )
         self.sc.axes.set_ylabel("Y")
         self.sc.axes.set_xlabel("X")
+
         cmap = cm.get_cmap("winter")
-        self.sc.axes.scatter(x, y, c=cmap(z), norm=colors.Normalize(vmin=0.0, vmax=1.0))
+        norm = plt.Normalize(vmin=0.0, vmax=1.0)
+        self.sc.axes.scatter(x, y, c=cmap(norm(z)))
 
         zone_area = plt.Circle(
             (0, 0),
@@ -147,18 +151,22 @@ class MainWindow(QMainWindow):
         self.DG = self.DG[:50] + [my_area_danger_level]
 
         self.sf.axes.cla()
+        norm = plt.Normalize(vmin=0.0, vmax=1.0)
+        cmapGreens = cm.get_cmap("Greens")
+        cmap = ListedColormap(cmapGreens(np.linspace(0.4, 1.0, 256)))
         self.sf.axes.scatter(
             range(0, len(self.HP)),
             self.HP,
-            c=cm.hot(self.HP),
-            norm=colors.Normalize(vmin=0, vmax=1.0),
+            c=cmap(norm(self.HP)),
             label="Stan agenta",
         )
+        norm = colors.Normalize(vmin=0, vmax=1.0)
+        cmapHot = cm.get_cmap("hot")
+        cmap = ListedColormap(cmapHot(np.linspace(0.1, 0.6, 256)))
         self.sf.axes.scatter(
             range(0, len(self.DG)),
             self.DG,
-            c=cm.hot(self.DG),
-            norm=colors.Normalize(vmin=0, vmax=1.0),
+            c=cmap(norm(self.DG)),
             label="Poziom zagrożenia",
         )
         self.sf.axes.set_title(f"Stan agenta {self.current_id}")

@@ -3,6 +3,7 @@ import os
 import random
 import socket
 import time
+import math
 from asyncio.queues import Queue
 from copy import copy
 from dataclasses import asdict, dataclass
@@ -20,10 +21,12 @@ class UserState:
     x: float
     y: float
     hp: float
+    angle: float
+    velocity: float
 
     @staticmethod
     def default():
-        return UserState(0, 0, 0)
+        return UserState(0, 0, 0, 0, 0)
 
 
 class UserStateEncoder(json.JSONEncoder):
@@ -31,7 +34,7 @@ class UserStateEncoder(json.JSONEncoder):
         return asdict(z) if isinstance(z, UserState) else super().default(z)
 
 
-SIM_STEP = 0.01
+SIM_STEP = 0.1
 
 
 class SmartWatchAgent(Agent):
@@ -43,12 +46,39 @@ class SmartWatchAgent(Agent):
                 x=random.random(),
                 y=random.random(),
                 hp=0.5 + random.random() / 2 * random.choice([-1, 1]),
+                angle=random.random()*math.pi*2 - math.pi,
+                velocity=random.random(),
             )
 
         async def run(self) -> None:
-            self.state.x += self.state.x * SIM_STEP - SIM_STEP / 2
-            self.state.y += self.state.y * SIM_STEP - SIM_STEP / 2
-            self.state.hp += self.state.hp * SIM_STEP - SIM_STEP / 2
+
+            radians = random.random()*math.pi*2 - math.pi
+            velocity = 1-min((2 * math.pi) - abs(radians - self.state.angle), abs(radians - self.state.angle)) / math.pi
+            self.state.x += math.sin(radians * math.pi)*velocity * SIM_STEP
+            self.state.y += math.cos(radians * math.pi)*velocity * SIM_STEP
+            self.state.angle = radians
+            self.state.velocity = velocity
+            
+            if self.state.x < 0.0:
+                self.state.x = 0.0
+            if self.state.x > 1.0:
+                self.state.x = 1.0
+            
+            if self.state.y < 0.0:
+                self.state.y = 0.0
+            if self.state.y > 1.0:
+                self.state.y = 1.0
+
+            rand_hp_factor = random.random()
+            if rand_hp_factor < 0.1:
+                hp_change_scale = 3.0
+            else:
+                hp_change_scale = 1.0
+            self.state.hp += hp_change_scale*(rand_hp_factor-self.state.hp)*SIM_STEP
+            if self.state.hp < 0.0:
+                self.state.hp = 0.0
+            if self.state.hp > 1.0:
+                self.state.hp = 1.0
 
             print(f"[[StateCollector]]: Fetching current user state: {self.state}")
 
@@ -104,7 +134,7 @@ class SmartWatchAgent(Agent):
         MEDIUM_DANGER = 0.5
         RUN_TYPE_OF_DANGER = 0.8
 
-        DANGER_THRESHOLD = 0.8
+        DANGER_THRESHOLD = 0.4
         ZONE_AREA_RADIUS = 0.3
 
         def __init__(self):
@@ -112,6 +142,7 @@ class SmartWatchAgent(Agent):
             self.state_queue = Queue()
             self.others_score = 0.0
             self.states_list = []
+            self.my_state: UserState = UserState.default()
             self.my_state: UserState = UserState.default()
             self.my_zone_danger_score = self.SMALL_DANGER
             self.server = WSServer()
@@ -139,7 +170,7 @@ class SmartWatchAgent(Agent):
                 results = (np.linalg.norm(others_locations[:, :2] - my_location, axis=1) <= self.ZONE_AREA_RADIUS)
                 agents_in_zone = [state for state, in_zone in zip(self.states_list, results) if in_zone]
 
-                agents_in_danger = sum([s.hp > self.DANGER_THRESHOLD for s in agents_in_zone])
+                agents_in_danger = sum([s.hp < self.DANGER_THRESHOLD for s in agents_in_zone])
 
                 if agents_in_danger <= 1:
                     self.my_zone_danger_score = self.SMALL_DANGER
