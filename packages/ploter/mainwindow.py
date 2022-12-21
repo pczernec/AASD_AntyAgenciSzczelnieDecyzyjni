@@ -16,7 +16,8 @@ from PySide2.QtWidgets import (
 from matplotlib import cm, colors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from matplotlib.colors import ListedColormap
+
 
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, width=5, height=4, dpi=100):
@@ -37,6 +38,9 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         self.socket = QWebSocket()
+        self.socket.error.connect(self._socket_error)
+        self.socket.textMessageReceived.connect(self.on_agent_data_received)
+
         grid = QGridLayout()
 
         self.sc = MplCanvas(width=5, height=4, dpi=100)
@@ -81,12 +85,18 @@ class MainWindow(QMainWindow):
         self.HP = []
         self.DG = []
         self.socket.close()
-        self.socket.error.connect(self._socket_error)
-        self.socket.textMessageReceived.connect(self.on_agent_data_received)
         self.socket.open(QUrl(f"ws://localhost:{5000 + idx}"))
 
     def _socket_error(self):
-        print(self.socket.errorString())
+        err = self.socket.errorString()
+        print(err)
+
+        self.sc.axes.cla()
+        self.sc.axes.set_title(f"Agent {self.current_id}: {err}")
+        self.sc.draw()
+
+        self.sf.axes.cla()
+        self.sf.draw()
 
     def on_agent_data_received(self, msg):
         msg = json.loads(msg)
@@ -120,9 +130,9 @@ class MainWindow(QMainWindow):
             circle_col = "b"
         if my_area_danger_level == self.RUN_TYPE_OF_DANGER:
             circle_col = "r"
-            self.sc.axes.set_facecolor('xkcd:salmon')
+            self.sc.axes.set_facecolor("xkcd:salmon")
         else:
-            self.sc.axes.set_facecolor('xkcd:white')
+            self.sc.axes.set_facecolor("xkcd:white")
 
         self.sc.axes.set_xlim(-1, 1)
         self.sc.axes.set_ylim(-1, 1)
