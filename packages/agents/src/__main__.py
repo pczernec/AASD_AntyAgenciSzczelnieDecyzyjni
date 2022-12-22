@@ -1,7 +1,12 @@
 import os
+import sys
 import time
+from pathlib import Path
 
 from spade import quit_spade  # noqa
+
+# Add `packages` dir to path to allow import of `constants`
+sys.path.insert(1, str(Path(__file__).parent.parent.parent.absolute()))
 
 from .sm_agent import SmartWatchAgent
 
@@ -19,3 +24,6 @@ def main():
 
     agent.stop()
     quit_spade()
+
+
+main()

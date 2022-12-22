@@ -6,7 +6,7 @@ from threading import Thread
 
 import websockets
 
-from .constants import Constants as C
+from constants.constants import Constants as C
 
 
 class WSServer:

@@ -13,7 +13,7 @@ from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
 from spade.message import Message
 
-from .constants import Constants as C
+from constants.constants import Constants as C
 from .ws import WSServer
 
 
