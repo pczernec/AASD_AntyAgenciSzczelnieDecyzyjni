@@ -17,8 +17,8 @@ from PySide2.QtWidgets import (
 )
 from matplotlib import cm, colors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
+from matplotlib.figure import Figure
 
 # Add `packages` dir to path to allow import of `constants`
 sys.path.insert(1, str(Path(__file__).parent.parent.absolute()))
@@ -121,8 +121,8 @@ class MainWindow(QMainWindow):
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
-        self.HP = self.HP[-C.HISTORY_LEN :] + [my_score]
-        self.DG = self.DG[-C.HISTORY_LEN :] + [my_area_danger_level]
+        self.HP = self.HP[-C.HISTORY_LEN:] + [my_score]
+        self.DG = self.DG[-C.HISTORY_LEN:] + [my_area_danger_level]
 
         self.clear_plots()
         self.plot_scores(x, y, z)
@@ -179,8 +179,8 @@ class MainWindow(QMainWindow):
 
     def plot_myscore(self):
         norm = plt.Normalize(vmin=0.0, vmax=1.0)
-        cmapGreens = cm.get_cmap("Greens")
-        cmap = ListedColormap(cmapGreens(np.linspace(0.4, 1.0, 256)))
+        cmap_greens = cm.get_cmap("Greens")
+        cmap = ListedColormap(cmap_greens(np.linspace(0.4, 1.0, 256)))
         self.sf.axes.scatter(
             range(1 - len(self.HP), 1),
             self.HP,
@@ -190,8 +190,8 @@ class MainWindow(QMainWindow):
         )
 
         norm = colors.Normalize(vmin=0, vmax=1.0)
-        cmapHot = cm.get_cmap("hot")
-        cmap = ListedColormap(cmapHot(np.linspace(0.1, 0.5, 256)))
+        cmap_hot = cm.get_cmap("hot")
+        cmap = ListedColormap(cmap_hot(np.linspace(0.1, 0.5, 256)))
         self.sf.axes.scatter(
             range(1 - len(self.DG), 1),
             self.DG,
