@@ -1,9 +1,12 @@
+import os
 import asyncio
 from asyncio.queues import Queue
 from json import dumps
 from threading import Thread
 
 import websockets
+
+from .constants import Constants as C
 
 
 class WSServer:
@@ -35,7 +38,9 @@ class WSServer:
     async def _listen(self):
         self.queue = Queue()
 
-        async with websockets.serve(self._accept_connection, "0.0.0.0", 8080):
+        async with websockets.serve(
+            self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
+        ):
             while True:
                 await self._do_broadcast()
 
