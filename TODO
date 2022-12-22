@@ -1,6 +1,4 @@
 - docker-compose -f
 
-- zbyt rzadko się odświeża, powinno się coś zmieniać co sekundę lub dwie, bo czekanie 10 sekund na zmianę w wizualizacji jest męczące i sprawie wrażenie, że to nie działa. Być może problem leży w tym, że dane są wysyłane tylko przy batchowaniu. Należy w takim razie częściej batchować / przyspieszyć symulację
 - mam 3 agentów, a kropki tworzą trace niczym satelity starlinka (pic)
-- gdy leci kilkadziesiąt broadcastów, osobny dla każdej wiadomości w  tym samym momencie, to to zabija plottera? albo i nie, ale jest chwilowy spike
 - trzymać w last state batch / cachować?
