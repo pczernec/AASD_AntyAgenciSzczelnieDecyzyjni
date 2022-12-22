@@ -11,38 +11,28 @@ from constants.constants import Constants as C
 
 class WSServer:
     def __init__(self) -> None:
-        self.connections = []
-
-        self.loop = None
-        self.queue = None
         self.thread = None
-        self.last_state = None
+        self.loop = None
+        self.connections = []
+        self.state_history = []
 
     async def _accept_connection(self, websocket):
         self.connections.append(websocket)
         print("added connection")
 
-        if self.last_state is not None:
-            await websocket.send(self.last_state)
+        if len(self.state_history):
+            await websocket.send(self.state_history[-1])
 
         try:
             await websocket.wait_closed()
         finally:
             self.connections.remove(websocket)
 
-    async def _do_broadcast(self):
-        el = await self.queue.get()
-        print(f"broadcasting: {el}")
-        websockets.broadcast(self.connections, el)
-
     async def _listen(self):
-        self.queue = Queue()
-
         async with websockets.serve(
             self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
         ):
-            while True:
-                await self._do_broadcast()
+            await asyncio.Future()  # run forever
 
     def _thread_init_fn(self):
         self.loop = asyncio.new_event_loop()
@@ -58,5 +48,7 @@ class WSServer:
         if isinstance(el, dict):
             el = dumps(el)
 
-        self.last_state = el
-        await self.queue.put(el)
+        self.state_history = self.state_history[-C.HISTORY_LEN :] + [el]
+
+        print(f"broadcasting: {el}")
+        websockets.broadcast(self.connections, el)
