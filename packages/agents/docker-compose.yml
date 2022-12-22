@@ -3,4 +3,5 @@ version: '3'
 services:
   agents:
     build: .
-
+    volumes:
+      - ../constants/constants.py:/app/spade_agents/constants.py:ro

@@ -16,7 +16,6 @@ services:
       AGENT_NAME: 'agent'
       AGENT_PASSWORD: 'agent'
       XMPP: 'xmpp_server'
-      NOTIFY_ADDR: '0.0.0.0'
       NOTIFY_PORT: 8080
     deploy:
       replicas: 3

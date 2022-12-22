@@ -1,5 +1,6 @@
 import json
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
@@ -19,6 +20,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
 
+sys.path.insert(1, str(Path(__file__).parent.parent.absolute()))
+from constants.constants import Constants as C
+
 
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, width=5, height=4, dpi=100):
@@ -28,14 +32,6 @@ class MplCanvas(FigureCanvasQTAgg):
 
 
 class MainWindow(QMainWindow):
-    # Those constants are shared with the DangerNotifier class.
-    SMALL_DANGER = 0.2
-    MEDIUM_DANGER = 0.5
-    SERIOUS_DANGER = 0.8
-
-    ZONE_AREA_RADIUS = 0.3
-    HISTORY_LEN = 50
-
     def __init__(self):
         QMainWindow.__init__(self)
 
@@ -124,8 +120,8 @@ class MainWindow(QMainWindow):
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
-        self.HP = self.HP[: self.HISTORY_LEN] + [my_score]
-        self.DG = self.DG[: self.HISTORY_LEN] + [my_area_danger_level]
+        self.HP = self.HP[: C.HISTORY_LEN] + [my_score]
+        self.DG = self.DG[: C.HISTORY_LEN] + [my_area_danger_level]
 
         self.clear_plots()
         self.plot_scores(x, y, z)
@@ -134,7 +130,7 @@ class MainWindow(QMainWindow):
 
     def clear_plots(self):
         locator = plticker.MultipleLocator(base=1)
-        hist_pad = self.HISTORY_LEN * 0.05
+        hist_pad = C.HISTORY_LEN * 0.05
 
         self.sc.axes.cla()
         self.sc.axes.set_xlim(-1, 1)
@@ -147,7 +143,7 @@ class MainWindow(QMainWindow):
         self.sc.axes.set_aspect("equal", adjustable="box")
 
         self.sf.axes.cla()
-        self.sf.axes.set_xlim(-(self.HISTORY_LEN + hist_pad), hist_pad)
+        self.sf.axes.set_xlim(-(C.HISTORY_LEN + hist_pad), hist_pad)
         self.sf.axes.set_ylim(0, 1)
         self.sf.axes.set_xlabel("Czas")
 
@@ -157,9 +153,9 @@ class MainWindow(QMainWindow):
 
     def plot_scores(self, x, y, z):
         circle_col = "g"
-        if self.DG[-1] == self.MEDIUM_DANGER:
+        if self.DG[-1] == C.MEDIUM_DANGER:
             circle_col = "b"
-        if self.DG[-1] == self.SERIOUS_DANGER:
+        if self.DG[-1] == C.SERIOUS_DANGER:
             circle_col = "r"
             self.sc.axes.set_facecolor("xkcd:salmon")
 
@@ -173,7 +169,7 @@ class MainWindow(QMainWindow):
 
         zone_area = plt.Circle(
             (0, 0),
-            self.ZONE_AREA_RADIUS,
+            C.ZONE_AREA_RADIUS,
             color=circle_col,
             clip_on=True,
             fill=False,

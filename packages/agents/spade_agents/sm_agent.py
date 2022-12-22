@@ -13,6 +13,7 @@ from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
 from spade.message import Message
 
+from .constants import Constants as C
 from .ws import WSServer
 
 
@@ -38,9 +39,6 @@ class UserStateEncoder(json.JSONEncoder):
         return asdict(z) if isinstance(z, UserState) else super().default(z)
 
 
-SIM_STEP = 0.1
-
-
 class SmartWatchAgent(Agent):
     class StateCollector(PeriodicBehaviour):
         def __init__(self, *args, **kwargs) -> None:
@@ -64,8 +62,8 @@ class SmartWatchAgent(Agent):
                 )
                 / math.pi
             )
-            self.state.x += math.sin(radians * math.pi) * velocity * SIM_STEP
-            self.state.y += math.cos(radians * math.pi) * velocity * SIM_STEP
+            self.state.x += math.sin(radians * math.pi) * velocity * C.SIM_STEP
+            self.state.y += math.cos(radians * math.pi) * velocity * C.SIM_STEP
             self.state.angle = radians
             self.state.velocity = velocity
 
@@ -77,7 +75,7 @@ class SmartWatchAgent(Agent):
             hp_change_scale = 3.0 if rand_hp_factor < 0.1 else 1.0
 
             self.state.hp += (
-                hp_change_scale * (rand_hp_factor - self.state.hp) * SIM_STEP
+                hp_change_scale * (rand_hp_factor - self.state.hp) * C.SIM_STEP
             )
 
             self.state.hp = clamp(self.state.hp, 0, 1)
@@ -132,13 +130,6 @@ class SmartWatchAgent(Agent):
                     self.last_time = t
 
     class DangerNotifier(CyclicBehaviour):
-        SMALL_DANGER = 0.2
-        MEDIUM_DANGER = 0.5
-        SERIOUS_DANGER = 0.8
-
-        DANGER_THRESHOLD = 0.4
-        ZONE_AREA_RADIUS = 0.3
-
         def __init__(self):
             super().__init__()
             self.state_queue = Queue()
@@ -146,7 +137,7 @@ class SmartWatchAgent(Agent):
             self.states_list = []
             self.my_state: UserState = UserState.default()
             self.my_state: UserState = UserState.default()
-            self.my_zone_danger_score = self.SMALL_DANGER
+            self.my_zone_danger_score = C.SMALL_DANGER
             self.server = WSServer()
 
         async def run(self) -> None:
@@ -173,7 +164,7 @@ class SmartWatchAgent(Agent):
 
                 results = (
                     np.linalg.norm(others_locations[:, :2] - my_location, axis=1)
-                    <= self.ZONE_AREA_RADIUS
+                    <= C.ZONE_AREA_RADIUS
                 )
                 agents_in_zone = [
                     state
@@ -182,15 +173,15 @@ class SmartWatchAgent(Agent):
                 ]
 
                 agents_in_danger = sum(
-                    [s.hp < self.DANGER_THRESHOLD for s in agents_in_zone]
+                    [s.hp < C.DANGER_THRESHOLD for s in agents_in_zone]
                 )
 
                 if agents_in_danger <= 1:
-                    self.my_zone_danger_score = self.SMALL_DANGER
+                    self.my_zone_danger_score = C.SMALL_DANGER
                 elif agents_in_danger <= 3:
-                    self.my_zone_danger_score = self.MEDIUM_DANGER
+                    self.my_zone_danger_score = C.MEDIUM_DANGER
                 else:
-                    self.my_zone_danger_score = self.SERIOUS_DANGER
+                    self.my_zone_danger_score = C.SERIOUS_DANGER
 
             await self.server.send(
                 json.dumps(
