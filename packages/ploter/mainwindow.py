@@ -20,6 +20,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
 
+# Add `packages` dir to path to allow import of `constants`
 sys.path.insert(1, str(Path(__file__).parent.parent.absolute()))
 from constants.constants import Constants as C
 

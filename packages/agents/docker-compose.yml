@@ -4,4 +4,4 @@ services:
   agents:
     build: .
     volumes:
-      - ../constants/constants.py:/app/spade_agents/constants.py:ro
+      - ../constants:/packages/constants:ro
