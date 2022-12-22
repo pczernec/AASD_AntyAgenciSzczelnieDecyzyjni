@@ -2,6 +2,9 @@
 
 
 class Constants:
+    STATE_COLLECTOR_PERIOD = 1
+    STATE_RECEIVER_PERIOD = 5
+
     SIM_STEP = 0.1
 
     SMALL_DANGER = 0.2

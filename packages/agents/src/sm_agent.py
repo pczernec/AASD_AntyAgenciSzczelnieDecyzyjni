@@ -123,7 +123,7 @@ class SmartWatchAgent(Agent):
                 self.user_states.append(state)
 
                 t = time.time()
-                if t - self.last_time > 10:
+                if t - self.last_time > C.STATE_RECEIVER_PERIOD:
                     print(f"[[StateReceiver]]: batching state {self.user_states}")
                     await self.agent.danger_notifier.state_queue.put(self.user_states)
                     self.user_states = []
@@ -198,7 +198,7 @@ class SmartWatchAgent(Agent):
             self.server.start()
 
     async def setup(self) -> None:
-        self.state_collector = self.StateCollector(period=1)
+        self.state_collector = self.StateCollector(period=C.STATE_COLLECTOR_PERIOD)
         self.add_behaviour(self.state_collector)
         self.state_broadcaster = self.StateBroadcaster()
         self.add_behaviour(self.state_broadcaster)

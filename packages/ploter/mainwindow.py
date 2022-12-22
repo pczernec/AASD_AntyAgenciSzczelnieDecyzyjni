@@ -121,8 +121,8 @@ class MainWindow(QMainWindow):
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
-        self.HP = self.HP[: C.HISTORY_LEN] + [my_score]
-        self.DG = self.DG[: C.HISTORY_LEN] + [my_area_danger_level]
+        self.HP = self.HP[-C.HISTORY_LEN :] + [my_score]
+        self.DG = self.DG[-C.HISTORY_LEN :] + [my_area_danger_level]
 
         self.clear_plots()
         self.plot_scores(x, y, z)
@@ -186,6 +186,7 @@ class MainWindow(QMainWindow):
             self.HP,
             c=cmap(norm(self.HP)),
             label="Stan agenta",
+            marker="+",
         )
 
         norm = colors.Normalize(vmin=0, vmax=1.0)
