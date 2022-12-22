@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
 
         self.agents_slider = QSlider(Qt.Orientation.Horizontal)
         self.agents_slider.setMinimum(0)
-        self.agents_slider.setMaximum(10)
+        self.agents_slider.setMaximum(9)
         self.agents_slider.setSingleStep(1)
         self.agents_slider.valueChanged.connect(self.on_agent_change)
         grid.addWidget(self.agents_slider, 1, 0)
@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
         self.current_id = 0
+        self.coords = ([], [], [])  # x, y, z
         self.HP = []
         self.DG = []
 
@@ -100,32 +101,32 @@ class MainWindow(QMainWindow):
         self.sc.axes.set_title(f"Agent {self.current_id}: {err}")
         self.draw_plots()
 
-    def on_agent_data_received(self, msg):
-        msg = json.loads(msg)
-
+    def process_message(self, msg):
         states = msg["states"]
-        scores = [s["hp"] for s in states]
         my_state = states[0]
         my_score = msg["my_score"]
         my_area_danger_level = msg["area_danger"]
 
-        x = []
-        y = []
-        z = []
-
-        for state, score in zip(states, scores):
-            x.append(state["x"])
-            y.append(state["y"])
-            z.append(score)
+        x = [s["x"] for s in states]
+        y = [s["y"] for s in states]
+        z = [s["hp"] for s in states]
 
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
-        self.HP = self.HP[-C.HISTORY_LEN:] + [my_score]
-        self.DG = self.DG[-C.HISTORY_LEN:] + [my_area_danger_level]
+        self.coords = (x, y, z)
+        self.HP = self.HP[-C.HISTORY_LEN :] + [my_score]
+        self.DG = self.DG[-C.HISTORY_LEN :] + [my_area_danger_level]
+
+    def on_agent_data_received(self, data):
+        msg_list = json.loads(data)
+
+        for raw_msg in msg_list:
+            msg = json.loads(raw_msg)
+            self.process_message(msg)
 
         self.clear_plots()
-        self.plot_scores(x, y, z)
+        self.plot_scores()
         self.plot_myscore()
         self.draw_plots()
 
@@ -152,7 +153,7 @@ class MainWindow(QMainWindow):
         self.sc.draw()
         self.sf.draw()
 
-    def plot_scores(self, x, y, z):
+    def plot_scores(self):
         circle_col = "g"
         if self.DG[-1] == C.MEDIUM_DANGER:
             circle_col = "b"
@@ -164,6 +165,7 @@ class MainWindow(QMainWindow):
             f"Pozycje i stan agentów, widok agenta {self.current_id}"
         )
 
+        x, y, z = self.coords
         cmap = cm.get_cmap("winter")
         norm = plt.Normalize(vmin=0.0, vmax=1.0)
         self.sc.axes.scatter(x, y, c=cmap(norm(z)))

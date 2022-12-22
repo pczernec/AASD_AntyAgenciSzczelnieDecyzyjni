@@ -1,6 +1,6 @@
 import asyncio
+import json
 import os
-from json import dumps
 from threading import Thread
 
 import websockets
@@ -19,8 +19,7 @@ class WSServer:
         self.connections.append(websocket)
         print("added connection")
 
-        if len(self.state_history):
-            await websocket.send(self.state_history[-1])
+        await websocket.send(json.dumps(self.state_history))
 
         try:
             await websocket.wait_closed()
@@ -29,7 +28,7 @@ class WSServer:
 
     async def _listen(self):
         async with websockets.serve(
-                self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
+            self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
         ):
             await asyncio.Future()  # run forever
 
@@ -44,10 +43,8 @@ class WSServer:
         self.thread.start()
 
     async def send(self, el):
-        if isinstance(el, dict):
-            el = dumps(el)
+        self.state_history = self.state_history[-C.HISTORY_LEN :] + [el]
 
-        self.state_history = self.state_history[-C.HISTORY_LEN:] + [el]
-
+        el = json.dumps([el])
         print(f"broadcasting: {el}")
         websockets.broadcast(self.connections, el)
