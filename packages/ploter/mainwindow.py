@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
     SERIOUS_DANGER = 0.8
 
     ZONE_AREA_RADIUS = 0.3
+    HISTORY_LEN = 50
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -83,6 +84,10 @@ class MainWindow(QMainWindow):
     def _exit(self):
         QApplication.quit()
 
+    def on_agent_change(self):
+        idx = self.agents_slider.value()
+        self.connect_to_agent(idx)
+
     def connect_to_agent(self, idx):
         self.current_id = idx
         self.HP = []
@@ -119,13 +124,17 @@ class MainWindow(QMainWindow):
         x = np.array(x) - (my_state["x"])
         y = np.array(y) - (my_state["y"])
 
+        self.HP = self.HP[: self.HISTORY_LEN] + [my_score]
+        self.DG = self.DG[: self.HISTORY_LEN] + [my_area_danger_level]
+
         self.clear_plots()
-        self.plot_scores(x, y, z, my_area_danger_level)
-        self.plot_myscore(my_score, my_area_danger_level)
+        self.plot_scores(x, y, z)
+        self.plot_myscore()
         self.draw_plots()
 
     def clear_plots(self):
         locator = plticker.MultipleLocator(base=1)
+        hist_pad = self.HISTORY_LEN * 0.05
 
         self.sc.axes.cla()
         self.sc.axes.set_xlim(-1, 1)
@@ -138,17 +147,19 @@ class MainWindow(QMainWindow):
         self.sc.axes.set_aspect("equal", adjustable="box")
 
         self.sf.axes.cla()
+        self.sf.axes.set_xlim(-(self.HISTORY_LEN + hist_pad), hist_pad)
         self.sf.axes.set_ylim(0, 1)
+        self.sf.axes.set_xlabel("Czas")
 
     def draw_plots(self):
         self.sc.draw()
         self.sf.draw()
 
-    def plot_scores(self, x, y, z, my_area_danger_level):
+    def plot_scores(self, x, y, z):
         circle_col = "g"
-        if my_area_danger_level == self.MEDIUM_DANGER:
+        if self.DG[-1] == self.MEDIUM_DANGER:
             circle_col = "b"
-        if my_area_danger_level == self.SERIOUS_DANGER:
+        if self.DG[-1] == self.SERIOUS_DANGER:
             circle_col = "r"
             self.sc.axes.set_facecolor("xkcd:salmon")
 
@@ -169,15 +180,12 @@ class MainWindow(QMainWindow):
         )
         self.sc.axes.add_patch(zone_area)
 
-    def plot_myscore(self, my_score, my_area_danger_level):
-        self.HP = self.HP[:50] + [my_score]
-        self.DG = self.DG[:50] + [my_area_danger_level]
-
+    def plot_myscore(self):
         norm = plt.Normalize(vmin=0.0, vmax=1.0)
         cmapGreens = cm.get_cmap("Greens")
         cmap = ListedColormap(cmapGreens(np.linspace(0.4, 1.0, 256)))
         self.sf.axes.scatter(
-            range(0, len(self.HP)),
+            range(1 - len(self.HP), 1),
             self.HP,
             c=cmap(norm(self.HP)),
             label="Stan agenta",
@@ -187,18 +195,14 @@ class MainWindow(QMainWindow):
         cmapHot = cm.get_cmap("hot")
         cmap = ListedColormap(cmapHot(np.linspace(0.1, 0.5, 256)))
         self.sf.axes.scatter(
-            range(0, len(self.DG)),
+            range(1 - len(self.DG), 1),
             self.DG,
             c=cmap(norm(self.DG)),
             label="Poziom zagrożenia",
         )
 
         self.sf.axes.set_title(f"Stan agenta {self.current_id}")
-        self.sf.axes.legend()
-
-    def on_agent_change(self):
-        idx = self.agents_slider.value()
-        self.connect_to_agent(idx)
+        self.sf.axes.legend(loc=2)
 
 
 if __name__ == "__main__":
