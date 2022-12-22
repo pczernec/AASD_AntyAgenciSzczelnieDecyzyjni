@@ -1,4 +1,3 @@
 - docker-compose -f
 
 - mam 3 agentów, a kropki tworzą trace niczym satelity starlinka (pic)
-- trzymać w last state batch / cachować?
