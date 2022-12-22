@@ -1,6 +1,5 @@
-import os
 import asyncio
-from asyncio.queues import Queue
+import os
 from json import dumps
 from threading import Thread
 
@@ -30,7 +29,7 @@ class WSServer:
 
     async def _listen(self):
         async with websockets.serve(
-            self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
+                self._accept_connection, "0.0.0.0", os.environ["NOTIFY_PORT"]
         ):
             await asyncio.Future()  # run forever
 
@@ -48,7 +47,7 @@ class WSServer:
         if isinstance(el, dict):
             el = dumps(el)
 
-        self.state_history = self.state_history[-C.HISTORY_LEN :] + [el]
+        self.state_history = self.state_history[-C.HISTORY_LEN:] + [el]
 
         print(f"broadcasting: {el}")
         websockets.broadcast(self.connections, el)

@@ -1,9 +1,9 @@
 import json
+import math
 import os
 import random
 import socket
 import time
-import math
 from asyncio.queues import Queue
 from copy import copy
 from dataclasses import asdict, dataclass
@@ -55,12 +55,12 @@ class SmartWatchAgent(Agent):
         async def run(self) -> None:
             radians = random.random() * math.pi * 2 - math.pi
             velocity = (
-                1
-                - min(
-                    (2 * math.pi) - abs(radians - self.state.angle),
-                    abs(radians - self.state.angle),
-                )
-                / math.pi
+                    1
+                    - min(
+                (2 * math.pi) - abs(radians - self.state.angle),
+                abs(radians - self.state.angle),
+            )
+                    / math.pi
             )
             self.state.x += math.sin(radians * math.pi) * velocity * C.SIM_STEP
             self.state.y += math.cos(radians * math.pi) * velocity * C.SIM_STEP
@@ -75,7 +75,7 @@ class SmartWatchAgent(Agent):
             hp_change_scale = 3.0 if rand_hp_factor < 0.1 else 1.0
 
             self.state.hp += (
-                hp_change_scale * (rand_hp_factor - self.state.hp) * C.SIM_STEP
+                    hp_change_scale * (rand_hp_factor - self.state.hp) * C.SIM_STEP
             )
 
             self.state.hp = clamp(self.state.hp, 0, 1)
@@ -163,8 +163,8 @@ class SmartWatchAgent(Agent):
                 ).T
 
                 results = (
-                    np.linalg.norm(others_locations[:, :2] - my_location, axis=1)
-                    <= C.ZONE_AREA_RADIUS
+                        np.linalg.norm(others_locations[:, :2] - my_location, axis=1)
+                        <= C.ZONE_AREA_RADIUS
                 )
                 agents_in_zone = [
                     state
